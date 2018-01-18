@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import json
+from env_crawl.items import CompanyDirectInfo as CDInfo
 
 
 class GdepSpider(scrapy.Spider):
@@ -25,12 +27,8 @@ class GdepSpider(scrapy.Spider):
         )
 
     def parse_companies(self, response):
-        tbody = response.css('#EnterpriseVo')[0]
-        trs = tbody.css('tr.question-in')
-        for tr in trs:
-            params = tr.css('td a::attr(onclick)').re(r'"(.*?)"')
-            print(params[0], params[1])
-            key = params[0]
-            ename = params[1]
-        next_page = response.css('nextPage').extract_first()
-        print(next_page)
+        data = json.loads(response.body_as_unicode())
+        companies = data['listDirectinfoVo']
+        for company in companies:
+            cd_info = CDInfo(**company)
+            yield cd_info

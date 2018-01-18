@@ -15,3 +15,19 @@ class EnvCrawlItem(scrapy.Item):
     url = scrapy.Field()
     desc = scrapy.Field()
     img = scrapy.Field()
+
+
+class CompanyDirectInfo(scrapy.Item):
+    areaName = scrapy.Field()
+    areacode = scrapy.Field()
+    directid = scrapy.Field()
+    entername = scrapy.Field()
+    entertype = scrapy.Field()
+    entertypename = scrapy.Field()
+    id = scrapy.Field()
+    ifreadonly = scrapy.Field()
+    monitorDirectId = scrapy.Field()
+    myear = scrapy.Field()
+    onoff = scrapy.Field()
+    orgcode = scrapy.Field()
+    state = scrapy.Field()
