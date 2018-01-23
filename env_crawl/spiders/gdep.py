@@ -18,13 +18,14 @@ class GdepSpider(scrapy.Spider):
         except:
             page_num = 0
         print(page_num)
-        url = 'https://app.gdep.gov.cn/epinfo/region/0/1'
+        url = 'https://app.gdep.gov.cn/epinfo/region/0/%s'
         formdata = {'ename': '', 'year': '2018'}
-        yield scrapy.FormRequest(
-            url=url,
-            formdata=formdata,
-            callback=self.parse_companies
-        )
+        for i in range(1, 2):  # TODO page_num+1
+            yield scrapy.FormRequest(
+                url=url % i,
+                formdata=formdata,
+                callback=self.parse_companies
+            )
 
     def parse_companies(self, response):
         data = json.loads(response.body_as_unicode())
@@ -38,3 +39,9 @@ class GdepSpider(scrapy.Spider):
             c_info['entertypename'] = company.get('entertypename', '')
             c_info['myear'] = company.get('myear', '')
             yield c_info
+            # base_info_url = "https://app.gdep.gov.cn/epinfo/selfmonitor/getEnterpriseInfo/{0}?ename={1}&year={2}"
+            # base_info_url = base_info_url.format(c_info['company_code'], c_info['company_name'], c_info['myear'])
+            # yield scrapy.Request(url=base_info_url, callback=self.parse_base_info)
+
+    def parse_base_info(self, response):
+        pass

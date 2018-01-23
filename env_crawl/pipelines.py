@@ -13,10 +13,14 @@ class EnvCrawlPipeline(object):
 
 
 class PsqlPipeline(object):
-    pg_uri = 'postgresql://postgres:postgres@localhost:5432/env_crawl'
+    @classmethod
+    def from_settings(cls, settings):
+        cls.pg_uri = settings['DB_URI']
+        conn = psycopg2.connect(cls.pg_uri)
+        return cls(conn)
 
-    def __init__(self):
-        self.connection = psycopg2.connect(PsqlPipeline.pg_uri)
+    def __init__(self, conn):
+        self.connection = conn
         self.connection.autocommit = True
         self.cursor = None
 
