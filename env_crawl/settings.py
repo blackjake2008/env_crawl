@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'env_crawl.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'env_crawl (+http://www.yourdomain.com)'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -27,10 +27,14 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 0.25
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
+# 限制每分钟同一IP地址 40个请求
+RANDOMIZE_DOWNLOAD_DELAY = False
+DOWNLOAD_DELAY = 60 / 40.0
+CONCURRENT_REQUESTS_PER_IP = 40
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
@@ -64,9 +68,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'env_crawl.pipelines.EnvCrawlPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'env_crawl.pipelines.PsqlPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -88,3 +92,13 @@ ROBOTSTXT_OBEY = False
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+DB_HOST = "127.0.0.1"
+DB_DBNAME = "env_crawl"
+DB_USER = "postgres"
+DB_PASSWORD = ""
+DB_PORT = "5432"
+DB_URI = "postgresql://postgres:postgres@localhost:5432/env_crawl"
+
+SQL_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+SQL_DATE_FORMAT = "%Y-%m-%d"

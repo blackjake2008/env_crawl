@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-from env_crawl.items import CompanyDirectInfo as CDInfo
+from env_crawl.items import Company
 
 
 class GdepSpider(scrapy.Spider):
@@ -30,5 +30,11 @@ class GdepSpider(scrapy.Spider):
         data = json.loads(response.body_as_unicode())
         companies = data['listDirectinfoVo']
         for company in companies:
-            cd_info = CDInfo(**company)
-            yield cd_info
+            c_info = Company()
+            c_info['province'] = '广东'
+            c_info['area'] = company.get('areaName', '')
+            c_info['company_name'] = company.get('entername', '')
+            c_info['company_code'] = company.get('monitorDirectId', '')
+            c_info['entertypename'] = company.get('entertypename', '')
+            c_info['myear'] = company.get('myear', '')
+            yield c_info
