@@ -31,11 +31,28 @@ class Company(scrapy.Item):
     area = scrapy.Field()
     myear = scrapy.Field()
     entertypename = scrapy.Field()
+    legal_person_code = scrapy.Field()
+    legal_person = scrapy.Field()
+    industry = scrapy.Field()
+    address = scrapy.Field()
 
     def get_insert_sql(self):
         sql = """
-            INSERT INTO company(company_name,company_code,province,area,myear,entertypename, crawl_time) VALUES(%s,%s,%s,%s,%s,%s,%s)
+            INSERT INTO company(company_name,company_code,province,area,myear,entertypename,legal_person_code,
+            legal_person,industry,address,crawl_time) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """
         values = (self['company_name'], self['company_code'], self['province'], self['area'], self['myear'],
-                  self['entertypename'], datetime.now().strftime(SQL_DATETIME_FORMAT))
+                  self['entertypename'], self['legal_person_code'], self['legal_person'], self['industry'],
+                  self['address'], datetime.now().strftime(SQL_DATETIME_FORMAT))
+        return sql, values
+
+    def get_updata_sql(self):
+        sql = """
+            UPDATE company SET company_code=%s,entertypename=%s,legal_person_code=%s,legal_person=%s,
+            industry=%s,address=%s,updata_time=%s 
+            WHERE company_name=%s AND province=%s AND area=%s AND myear=%s
+        """
+        values = (self['company_code'], self['entertypename'], self['legal_person_code'], self['legal_person'],
+                  self['industry'], self['address'], datetime.now().strftime(SQL_DATETIME_FORMAT),
+                  self['company_name'], self['province'], self['area'], self['myear'])
         return sql, values

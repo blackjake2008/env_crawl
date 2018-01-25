@@ -37,11 +37,18 @@ class GdepSpider(scrapy.Spider):
             c_info['company_name'] = company.get('entername', '')
             c_info['company_code'] = company.get('monitorDirectId', '')
             c_info['entertypename'] = company.get('entertypename', '')
-            c_info['myear'] = company.get('myear', '')
-            yield c_info
-            # base_info_url = "https://app.gdep.gov.cn/epinfo/selfmonitor/getEnterpriseInfo/{0}?ename={1}&year={2}"
-            # base_info_url = base_info_url.format(c_info['company_code'], c_info['company_name'], c_info['myear'])
-            # yield scrapy.Request(url=base_info_url, callback=self.parse_base_info)
+            c_info['myear'] = str(company.get('myear', ''))
+            # yield c_info
+            base_info_url = "https://app.gdep.gov.cn/epinfo/selfmonitor/getEnterpriseInfo/{0}?ename={1}&year={2}"
+            base_info_url = base_info_url.format(c_info['company_code'], c_info['company_name'], c_info['myear'])
+            yield scrapy.Request(url=base_info_url, meta={'company_info': c_info}, callback=self.parse_base_info)
 
     def parse_base_info(self, response):
-        pass
+        c_info = response.meta['company_info']
+        table = response.css('table.in-to')
+        tds = table.css('td::text').extract()
+        c_info['legal_person_code'] = tds[-4].strip()
+        c_info['legal_person'] = tds[-3].strip()
+        c_info['industry'] = tds[-2].strip()
+        c_info['address'] = tds[-1].strip()
+        yield c_info

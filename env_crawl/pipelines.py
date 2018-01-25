@@ -32,6 +32,10 @@ class PsqlPipeline(object):
         self.connection.close()
 
     def process_item(self, item, spider):
-        insert_sql, values = item.get_insert_sql()
-        self.cursor.execute(insert_sql, values)
+        try:
+            insert_sql, values = item.get_insert_sql()
+            self.cursor.execute(insert_sql, values)
+        except psycopg2.IntegrityError:
+            updata_sql, values = item.get_updata_sql()
+            self.cursor.execute(updata_sql, values)
         return item
