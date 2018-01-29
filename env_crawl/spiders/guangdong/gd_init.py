@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+初始化公司基础信息，每年保持最新的一份数据, 每月调度一次
+"""
 import scrapy
 import json
 from env_crawl.items import Company
 
 
-class GdepSpider(scrapy.Spider):
-    name = 'gdep'
+class GdInitSpider(scrapy.Spider):
+    name = 'guangdong.init'
     allowed_domains = ['app.gdep.gov.cn']
     start_urls = ['https://app.gdep.gov.cn/epinfo']
 
@@ -20,6 +23,7 @@ class GdepSpider(scrapy.Spider):
         print(page_num)
         url = 'https://app.gdep.gov.cn/epinfo/region/0/%s'
         formdata = {'ename': '', 'year': '2018'}
+        print("开始初始化广东", 2017, "年公司信息")
         for i in range(1, 2):  # TODO page_num+1
             yield scrapy.FormRequest(
                 url=url % i,

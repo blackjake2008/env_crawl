@@ -4,4 +4,4 @@ __author__ = 'Jett.Hu'
 
 from scrapy.cmdline import execute
 
-execute(["scrapy", "crawl", "gdep"])
+execute(["scrapy", "crawl", "guangdong.init"])
