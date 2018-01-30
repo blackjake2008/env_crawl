@@ -4,7 +4,12 @@
 """
 import scrapy
 import json
+import os
 from env_crawl.items import Company
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
+syear = os.environ.get("YEAR")
 
 
 class GdInitSpider(scrapy.Spider):
@@ -22,8 +27,8 @@ class GdInitSpider(scrapy.Spider):
             page_num = 0
         print(page_num)
         url = 'https://app.gdep.gov.cn/epinfo/region/0/%s'
-        formdata = {'ename': '', 'year': '2018'}
-        print("开始初始化广东", 2017, "年公司信息")
+        formdata = {'ename': '', 'year': syear}
+        print("开始初始化广东", syear, "年公司信息")
         for i in range(1, 2):  # TODO page_num+1
             yield scrapy.FormRequest(
                 url=url % i,

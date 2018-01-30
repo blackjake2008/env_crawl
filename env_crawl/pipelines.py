@@ -36,6 +36,6 @@ class PsqlPipeline(object):
             insert_sql, values = item.get_insert_sql()
             self.cursor.execute(insert_sql, values)
         except psycopg2.IntegrityError:
-            updata_sql, values = item.get_updata_sql()
-            self.cursor.execute(updata_sql, values)
+            update_sql, values = item.get_update_sql()
+            self.cursor.execute(update_sql, values)
         return item
