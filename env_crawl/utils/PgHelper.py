@@ -32,15 +32,14 @@ class PgHelper(object):
             self.__conn, self.__cur = None, None
             return False
 
-    def execute(self, sqls):
-        for sql in sqls:
-            try:
-                self.__cur.execute(sql)
-                self.__conn.commit()
-                pg_logger.debug('Success execute one sql')
-            except Exception as e:
-                pg_logger.error(repr(e))
-                self.__conn.rollback()
+    def execute(self, sql):
+        try:
+            self.__cur.execute(sql)
+            self.__conn.commit()
+            pg_logger.debug('Success execute one sql')
+        except Exception as e:
+            pg_logger.error(repr(e))
+            self.__conn.rollback()
 
     def __enter__(self):
         if self.conn_db():

@@ -98,6 +98,7 @@ DB_DBNAME = "env_crawl"
 DB_USER = "postgres"
 DB_PASSWORD = ""
 DB_PORT = "5432"
+DB_URI = 'postgresql://postgres:postgres@localhost:5432/env_crawl'
 
 SQL_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 SQL_DATE_FORMAT = "%Y-%m-%d"

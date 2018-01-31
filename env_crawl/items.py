@@ -69,7 +69,7 @@ class Company(scrapy.Item):
     @classmethod
     def get_company_by_province(cls, pro, year):
         """获取该省指定年份所有公司"""
-        sql = "SELECT * from company WHERE province={0} AND syear={1}".format(pro, year)
+        sql = "SELECT * from company WHERE province='{0}' AND myear='{1}'".format(pro, year)
         with PgHelper(db_url) as pg:
             companies = pg.select(sql)
         return companies
@@ -78,14 +78,14 @@ class Company(scrapy.Item):
     def select_to_item(cls, select):
         """将select * 结果转换为item"""
         item = Company()
-        item.company_name = select[1]
-        item.company_id_web = select[2]
-        item.province = select[3]
-        item.area = select[4]
-        item.myear = select[5]
-        item.entertypename = select[6]
-        item.legal_person_code = select[9]
-        item.legal_person = select[10]
-        item.industry = select[11]
-        item.address = select[12]
+        item['company_name'] = select[1]
+        item['company_id_web'] = select[2]
+        item['province'] = select[3]
+        item['area'] = select[4]
+        item['myear'] = select[5]
+        item['entertypename'] = select[6]
+        item['legal_person_code'] = select[9]
+        item['legal_person'] = select[10]
+        item['industry'] = select[11]
+        item['address'] = select[12]
         return item
