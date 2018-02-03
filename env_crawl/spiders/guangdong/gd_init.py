@@ -5,7 +5,7 @@
 import scrapy
 import json
 import os
-from env_crawl.items import Company
+from env_crawl.items import CompanyItem
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -40,16 +40,17 @@ class GdInitSpider(scrapy.Spider):
         data = json.loads(response.body_as_unicode())
         companies = data['listDirectinfoVo']
         for company in companies:
-            c_info = Company()
+            c_info = CompanyItem()
             c_info['province'] = '广东'
+            c_info['url'] = 'https://app.gdep.gov.cn/epinfo'
             c_info['area'] = company.get('areaName', '')
-            c_info['company_name'] = company.get('entername', '')
-            c_info['company_code'] = company.get('monitorDirectId', '')
+            c_info['name'] = company.get('entername', '')
+            c_info['web_id'] = company.get('monitorDirectId', '')
             c_info['entertypename'] = company.get('entertypename', '')
-            c_info['myear'] = str(company.get('myear', ''))
+            c_info['syear'] = str(company.get('myear', ''))
             # yield c_info
             base_info_url = "https://app.gdep.gov.cn/epinfo/selfmonitor/getEnterpriseInfo/{0}?ename={1}&year={2}"
-            base_info_url = base_info_url.format(c_info['company_code'], c_info['company_name'], c_info['myear'])
+            base_info_url = base_info_url.format(c_info['web_id'], c_info['name'], c_info['syear'])
             yield scrapy.Request(url=base_info_url, meta={'company_info': c_info}, callback=self.parse_base_info)
 
     def parse_base_info(self, response):
