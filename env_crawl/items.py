@@ -8,10 +8,6 @@
 import scrapy
 from env_crawl.models import *
 from datetime import datetime
-from env_crawl.settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
-from env_crawl.utils.PgHelper import PgHelper
-
-db_url = os.environ.get("DB_URI")
 
 
 class EnvCrawlItem(scrapy.Item):
@@ -48,7 +44,7 @@ class CompanyItem(scrapy.Item):
                                   EnvCompany.area == self['area'], EnvCompany.syear == self['syear'])
             for k in self.keys():
                 item.__setattr__(k, self[k])
-            item.update_time = datetime.datetime.now()
+            item.update_time = datetime.now()
             item.save()
         except DoesNotExist:
             EnvCompany.create(**self)
@@ -123,7 +119,7 @@ class MonitorPointItem(scrapy.Item):
                                     MonitorPoint.point_type == self['point_type'], MonitorPoint.syear == self['syear'])
             for k in self.keys():
                 item.__setattr__(k, self[k])
-            item.update_time = datetime.datetime.now()
+            item.update_time = datetime.now()
             item.save()
         except DoesNotExist:
             item = MonitorPoint.create(**self)

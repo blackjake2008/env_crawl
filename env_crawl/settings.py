@@ -102,3 +102,7 @@ DB_URI = 'postgresql://postgres:postgres@localhost:5432/env_crawl'
 
 SQL_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 SQL_DATE_FORMAT = "%Y-%m-%d"
+
+SYEAR = 2018
+
+REDIS_URL = "redis://localhost:6379/?db=3"

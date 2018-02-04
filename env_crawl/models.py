@@ -1,18 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__ = 'Jett.Hu'
-import os
 import json
 import datetime
 from peewee import *
-from dotenv import find_dotenv, load_dotenv
+from env_crawl.settings import *
 
-load_dotenv(find_dotenv())
-db_name = os.environ.get("DB_DBNAME")
-db_host = os.environ.get("DB_HOST")
-db_user = os.environ.get("DB_USER")
-db_pwd = os.environ.get("DB_PASSWORD")
-db_port = int(os.environ.get("DB_PORT"))
+db_name = DB_DBNAME
+db_host = DB_HOST
+db_user = DB_USER
+db_pwd = DB_PASSWORD
+db_port = int(DB_PORT)
 pg_db = PostgresqlDatabase(db_name, user=db_user, password=db_pwd, host=db_host, port=db_port)
 
 

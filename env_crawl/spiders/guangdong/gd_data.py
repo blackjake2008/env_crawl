@@ -4,8 +4,9 @@ import os
 import re
 import requests
 from env_crawl.items import *
+from env_crawl.settings import *
 
-syear = int(os.environ.get("YEAR"))
+syear = SYEAR
 province = '广东'
 
 
@@ -50,12 +51,31 @@ class GdDataSpider(scrapy.Spider):
                 monitor_point_dict["point_type"] = ""
             monitor_point_dict['syear'] = syear
             monitor_point = MonitorPointItem(**monitor_point_dict)
-            monitor_point.insert_or_update()
+            point = monitor_point.insert_or_update()
 
             monitor_info_url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findMiinfo?mpid={0}".format(point_code)
             monitor_info_html = requests.get(monitor_info_url)
-            monitor_info_lists = json.loads(monitor_info_html)
-
+            monitor_info_lists = json.loads(monitor_info_html.text)
+            for info in monitor_info_lists:
+                if info["mitec"] != "":
+                    if int(info["mitec"]) == 1:
+                        mode = "manual"  # 手动监测
+                        frequency = "day"
+                    else:
+                        mode = "auto"  # 自动监测
+                        frequency = "hour"
+                    print(info["miname"])
+                    monitor_info_dict = {}
+                    monitor_info_dict["name"] = info["miname"]
+                    monitor_info_dict["max_unit"] = info["unit"]
+                    monitor_info_dict["monitor_code"] = info["miid"]
+                    monitor_info_dict["way"] = mode
+                    monitor_info_dict["company"] = company
+                    monitor_info_dict["monitor"] = point
+                else:
+                    monitor_info_dict = {}
+                    print("点位：{0}没有监测因子".format(point_name))
+                    continue
 
         pass
 
