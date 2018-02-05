@@ -21,11 +21,12 @@ def getStartTime(inputYear, province, company, point_name, factor_name, dataType
     :param frequency: 频率：hour|day
     :return:
     """
-    skey = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}".format(inputYear, province, company.id, dataType,
+    skey = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}".format(inputYear, province, company, dataType,
                                                     point_name, factor_name, way, frequency)
     print(skey)
     redis_time = RD.get(skey)
     if redis_time:
+        redis_time = str(RD.get(skey), encoding='utf-8')
         print("get time from redis:", redis_time)
         try:
             crawl_start_time = datetime.strptime(redis_time, "%Y-%m-%d %H:%M:%S")
@@ -35,3 +36,11 @@ def getStartTime(inputYear, province, company, point_name, factor_name, dataType
         crawl_start_time = datetime(inputYear, 1, 1)
         RD.set(skey, crawl_start_time.strftime("%Y-%m-%d %H:%M:%S"))
     return crawl_start_time
+
+
+def getEndTime(inputYear):
+    if datetime.now().year == inputYear:
+        day = datetime.now().today()
+    else:
+        day = datetime(inputYear, 12, 31)
+    return day
