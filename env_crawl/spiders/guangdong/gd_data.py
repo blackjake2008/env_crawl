@@ -81,30 +81,90 @@ class GdDataSpider(scrapy.Spider):
                     print("{}目前为止，该部分数据已经全部爬取".format(company.name))
                 while begin_time < end_time:
                     start_day = begin_time.strftime("%Y-%m-%d")
-                    end_day = end_time.strftime("%Y-%m-%d")
-                    meta_data = {"year": syear, "company": company, "data_type": dataType, "monitor_point": point,
-                                 "monitor_info": monitor_info_dict, "way": mode, "start": start_day,
-                                 "end": end_day}
+                    one_month = begin_time + timedelta(days=HISTORY_BEFORE)
+                    end_day = one_month.strftime("%Y-%m-%d")
+                    # meta_data = {"year": syear, "company": company, "data_type": dataType, "monitor_point": point,
+                    #              "monitor_info": monitor_info_dict, "way": mode, "start": start_day,
+                    #              "end": end_day}
                     print("monitor_info:{0}{1}".format(monitor_info_dict["name"], point.name))
                     if mode == "manual":
                         print("{0}~{1}manual".format(start_day, end_day).center(80, '-'))
-                        print("start get manual results:{}".format(company.name))
-                        url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findAccountInfo"
-                        form_data = {
-                            "mpId": point.code, "miId": monitor_info_dict["name"], "startime": start_day,
-                            "endtime": end_day, "directid": company.web_id, "id": company.web_id,
-                            "year": syear, "page": 1
-                        }
+                        # print("start get manual results:{}".format(company.name))
+                        # url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findAccountInfo"
+                        # form_data = {
+                        #     "mpId": point.code, "miId": monitor_info_dict["name"], "startime": start_day,
+                        #     "endtime": end_day, "directid": company.web_id, "id": company.web_id,
+                        #     "year": syear, "page": '1'
+                        # }
+                        # form_data = {k: str(v) for k, v in form_data.items()}
+                        # ret = requests.post(url, form_data)
+                        # yield scrapy.FormRequest(url=url, formdata=form_data, callback=self.parse_manual,
+                        #                          meta=meta_data)
+                        self.getResultsOneCompanyManual(syear, company, dataType, point, monitor_point_dict, mode,
+                                                        start_day, end_day)
                     else:
                         print("{0}~{1}auto".format(start_day, end_day).center(80, '-'))
-                        print("start get auto results:{}".format(company.name))
-                        url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findOM3"
+                        # print("start get auto results:{}".format(company.name))
+                        # url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findOM3"
+                        # form_data = {
+                        #     "mpId": point.code, "miId": monitor_info_dict["monitor_code"], "startime": start_day,
+                        #     "endtime": end_day, "miinfoname": monitor_info_dict["name"], "directid": company.web_id,
+                        #     "id": company.web_id, "year": syear, "page": '1'
+                        # }
+                        # form_data = {k: str(v) for k, v in form_data.items()}
+                        # yield scrapy.FormRequest(url=url, formdata=form_data, callback=self.parse_auto, meta=meta_data)
+                        self.getResultsOneCompanyAuto(syear, company, dataType, point, monitor_point_dict, mode,
+                                                      start_day, end_day)
                     begin_time += timedelta(days=HISTORY_BEFORE)
 
     def parse_manual(self, response):
+        print(response.text)
         pass
 
     def parse_auto(self, response):
+        print(response.text)
+        pass
+
+    @staticmethod
+    def getResultsOneCompanyManual(inputYear, company, dataType, monitor_point, monitor_info, way, startTime,
+                                   endTime, page=1):
+        print("start get manual results:", company.name)
+        print("monitor_info:", monitor_info["name"], monitor_point.name)
+        url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findAccountInfo"
+        para_dct = {"mpId": monitor_point.code, "miId": monitor_info["name"], "startime": startTime, "endtime": endTime,
+                    "directid": company.web_id, "id": company.web_id, "year": inputYear, "page": page}
+        html_doc = requests.post(url, para_dct)
+        if html_doc:
+            result_lists = json.loads(html_doc)
+            total_numbers = int(result_lists["map"]["Total"])  # 或得的是数据的总条数，然后根据总条数来计算获得总页数
+            total_pages = total_numbers / 24
+            if total_numbers % 24 != 0:
+                total_pages += 1
+            print("total_pages:", total_pages)
+            if total_pages > 0 and "list" in result_lists.keys():
+                queryList = []
+                for r in result_lists["list"]:
+                    monitor_info["frequency"] = "day"
+                    monitor_info["way"] = way
+                    monitor_info["max_value"] = r["standardValue"]
+                    monitor_info["syear"] = inputYear
+                    # monitor_point = MonitorPointItem(**monitor_info)
+                    # monitor_info_instance = MonitorPointItem.insert_or_update()
+
+        pass
+
+    @staticmethod
+    def getResultsOneCompanyAuto(inputYear, company, taskType, dataType, monitor_point, monitor_info, way, startTime,
+                                 endTime, page=1):
+        print("start get auto results:", company.name)
+        print("monitor_info:", monitor_info["name"], monitor_point.name)
+        url = "https://app.gdep.gov.cn/epinfo/selfmonitor/findOM3"
+        para_dct = {"mpId": monitor_point.code, "miId": monitor_info["monitor_code"], "startime": startTime,
+                    "endtime": endTime, "miinfoname": monitor_info["name"], "directid": company.web_id,
+                    "id": company.web_id, "year": inputYear, "page": page}
+        html_doc = requests.post(url, para_dct)
+        if html_doc:
+            result_lists = json.loads(html_doc)
         pass
 
     def parse_detail(self, response):
