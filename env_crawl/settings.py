@@ -106,3 +106,4 @@ SYEAR = 2018
 HISTORY_BEFORE = 5
 
 REDIS_URL = "redis://localhost:6379/?db=3"
+API_RD = "redis://localhost:6379/?db=0"

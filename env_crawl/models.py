@@ -122,8 +122,15 @@ class Results(BaseModel):
     create_time = DateTimeField(default=datetime.datetime.now)
     update_time = DateTimeField(default=datetime.datetime.now)
 
+    # class Meta:
+    #     indexes = (
+    #         (('syear', 're_company', 're_monitor_info', 'release_time'), True),
+    #     )
+
 
 if __name__ == '__main__':
     pg_db.connect()
-    pg_db.create_tables([EnvCompany, MonitorPoint])
+    pg_db.drop_tables([Results])
+    pg_db.create_tables([Results])
+    # pg_db.create_tables([EnvCompany, MonitorPoint, MonitorInfo, Results])
     pg_db.close()

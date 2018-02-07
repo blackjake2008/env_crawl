@@ -6,6 +6,8 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+import re
+import traceback
 from env_crawl.models import *
 from datetime import datetime
 
@@ -47,7 +49,11 @@ class CompanyItem(scrapy.Item):
             item.update_time = datetime.now()
             item.save()
         except DoesNotExist:
-            EnvCompany.create(**self)
+            item = EnvCompany.create(**self)
+        except:
+            item = None
+            print(traceback.format_exc())
+        return item
 
     # def get_insert_sql(self):
     #     """返回insert sql语句和item"""
@@ -123,4 +129,102 @@ class MonitorPointItem(scrapy.Item):
             item.save()
         except DoesNotExist:
             item = MonitorPoint.create(**self)
+        except:
+            item = None
+            print(traceback.format_exc())
         return item
+
+
+class MonitorInfoItem(scrapy.Item):
+    company = scrapy.Field()
+    monitor = scrapy.Field()
+    name = scrapy.Field()
+    frequency = scrapy.Field()
+    frequency_src = scrapy.Field()
+    point_type = scrapy.Field()
+    max_value = scrapy.Field()
+    min_value = scrapy.Field()
+    max_unit = scrapy.Field()
+    min_unit = scrapy.Field()
+    source = scrapy.Field()
+    way = scrapy.Field()
+    publish_due = scrapy.Field()
+    index_type = scrapy.Field()
+    monitor_code = scrapy.Field()
+    syear = scrapy.Field()
+    device_name = scrapy.Field()
+
+    def insert_or_update(self):
+        if 'max_value' in self.keys() and self['max_value']:
+            self['max_value'] = re.sub(r'\s+', " ", str(self["max_value"]))
+        clean_frequency(self)
+        try:
+            item = MonitorInfo.get(MonitorInfo.company == self['company'], MonitorInfo.monitor == self['monitor'],
+                                   MonitorInfo.name == self['name'], MonitorInfo.way == self['way'],
+                                   MonitorInfo.syear == self['syear'])
+            for k in self.keys():
+                item.__setattr__(k, self[k])
+            item.update_time = datetime.now()
+            item.save()
+        except DoesNotExist:
+            item = MonitorInfo.create(**self)
+        except:
+            item = None
+            print(traceback.format_exc())
+        return item
+
+
+class ResultItem(scrapy.Item):
+    re_company = scrapy.Field()
+    re_monitor = scrapy.Field()
+    re_monitor_info = scrapy.Field()
+    re_type = scrapy.Field()
+    monitor = scrapy.Field()
+    monitor_info = scrapy.Field()
+    company = scrapy.Field()
+    threshold = scrapy.Field()
+    monitor_value = scrapy.Field()
+    unit = scrapy.Field()
+    min_cal_value = scrapy.Field()
+    max_cal_value = scrapy.Field()
+    release_time = scrapy.Field()
+    monitor_way = scrapy.Field()
+    exceed_flag = scrapy.Field()
+    exceed_type = scrapy.Field()
+    times = scrapy.Field()
+    pollution_type = scrapy.Field()
+    pollution_go = scrapy.Field()
+    data_status = scrapy.Field()
+    remark = scrapy.Field()
+    province = scrapy.Field()
+    zs_value = scrapy.Field()
+    discharge_amount = scrapy.Field()
+    syear = scrapy.Field()
+    pub_time = scrapy.Field()
+
+    def insert_or_update(self):
+        pass
+
+
+def clean_frequency(data):
+    if 'frequency' in data.keys():
+        frequency = data['frequency']
+        data['frequency_src'] = frequency
+        if re.search("月", frequency):
+            frequency = 'month'
+        elif re.search("周", frequency):
+            frequency = 'week'
+        elif re.search("日", frequency):
+            frequency = 'day'
+        elif re.search("季", frequency):
+            frequency = 'quarter'
+        elif re.search("半年", frequency):
+            frequency = 'halfyear'
+        elif re.search("年", frequency):
+            frequency = 'year'
+        elif re.search("连续", frequency) or re.search("连续监测", frequency) or re.search("时", frequency) or re.search("小时",
+                                                                                                                  frequency) or re.search(
+            "2小时", frequency):
+            frequency = 'hour'
+
+        data['frequency'] = frequency
