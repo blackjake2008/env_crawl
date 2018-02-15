@@ -4,12 +4,14 @@ __author__ = 'Jett.Hu'
 import redis
 import re
 import traceback
-from env_crawl.settings import REDIS_URL, API_RD
+from env_crawl.settings import REDIS_URL, API_RD_URL
 from datetime import datetime, date
 from env_crawl.models import Results
 
 pool = redis.ConnectionPool.from_url(REDIS_URL)
 RD = redis.Redis(connection_pool=pool)
+api_pool = redis.ConnectionPool.from_url(API_RD_URL)
+API_RD = redis.Redis(connection_pool=api_pool)
 
 
 def getStartTime(inputYear, province, company, dataType, way, frequency, point_name, factor_name):
@@ -111,7 +113,7 @@ def syncRedis(result):
     if type(result) == Results and result.monitor_way == 'auto' and result.re_type == 'hour':
         try:
             # company_lists
-            key = 'cl:' + result.province + ":" + result.re_company_id
+            key = 'cl:{0}:{1}'.format(result.province, result.re_company_id)
             API_RD.hset(key, 'lng', result.re_company.lng)
             API_RD.hset(key, 'lat', result.re_company.lat)
             API_RD.hset(key, 'city', result.re_company.city)

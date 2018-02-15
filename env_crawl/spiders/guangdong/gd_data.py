@@ -138,7 +138,6 @@ def getResultsOneCompanyManual(inputYear, company, dataType, monitor_point, moni
 
                 monitor_info_item = MonitorInfoItem(**monitor_info)
                 monitor_info_instance = monitor_info_item.insert_or_update()
-
                 release_time_list = re.findall('\d+', r["monitorTime"])  # 监测时间
                 try:
                     release_time = release_time_list[0] + "-" + release_time_list[1] + "-" + release_time_list[2]
@@ -186,11 +185,9 @@ def getResultsOneCompanyManual(inputYear, company, dataType, monitor_point, moni
             # 在这里如果不进行监测因子的处理，没有监测结果的话就会丢失监测因子的信息
             monitor_info["frequency"] = "day"
             monitor_info["way"] = way
-            # DBTools.createMonitorInfo(inputYear, monitor_info)
             monitor_info_item = MonitorInfoItem(**monitor_info)
             monitor_info_item.insert_or_update()
-            print("该时间段没有数据")
-            print("-" * 50)
+            print("该时间段没有数据".center(80, '-'))
 
 
 def getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monitor_info, way, startTime,
@@ -203,5 +200,115 @@ def getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monito
                 "id": company.web_id, "year": inputYear, "page": page}
     html_doc = requests.post(url, para_dct)
     if html_doc:
-        result_lists = json.loads(html_doc)
-    pass
+        result_lists = json.loads(html_doc.text)
+        total_numbers = int(result_lists["totel"])
+        total_pages = total_numbers / 24
+        if total_numbers % 24 != 0:
+            total_pages += 1
+        print("total_pages:", page, '/', total_pages)
+        monitor_info_instance = None
+        if total_pages > 0 and "results" in result_lists.keys():
+            queryList = []
+            for r in result_lists["results"]:
+                monitor_info["frequency"] = "hour"
+                monitor_info["way"] = way
+                max_value = r["standardvalue"].strip().split('-')[-1]
+                min_value = r["standardvalue"].strip().split('-')[0]
+                monitor_info["max_value"] = max_value
+                monitor_info["min_value"] = min_value
+                monitor_info["min_unit"] = monitor_info["max_unit"]
+                monitor_info_item = MonitorInfoItem(**monitor_info)
+                monitor_info_instance = monitor_info_item.insert_or_update()
+
+                release_time = r["monitortime"].strip().replace('T', ' ')  # 监测时间
+                result_dict = {"re_company": company, "re_type": 'hour', "company": company.name,
+                               "re_monitor": monitor_point, "re_monitor_info": monitor_info_instance,
+                               "monitor": monitor_point.name, "monitor_info": monitor_info_instance.name,
+                               "province": province, "release_time": release_time}
+                try:
+                    if "monitorResult" in r.keys():
+                        result_dict["data_status"] = r["monitorResult"]  # 数据填报说明
+                    elif "invalidreason" in r.keys():
+                        result_dict["remark"] = r["invalidreason"]
+                except Exception as e:
+                    print(e)
+                    print(traceback.format_exc())
+                try:
+                    result_dict["pubtime"] = datetime.strptime(result_dict["release_time"], '%Y-%m-%d %H:%M:%S')
+                except:
+                    try:
+                        # 首先确定数据是否为空
+                        if r["creatime"] != "":
+                            # 可能是7-17（01:00:00）这种形式 括号可能是中文或者英文
+                            if "（" in r["creatime"] in r["creatime"]:
+                                result_dict["release_time"] = release_time + " " + r["creatime"][-9:-1]
+                                result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                                                                    '%Y-%m-%d %H:%M:%S')
+                            elif "(" in r["creatime"] in r["creatime"]:
+                                result_dict["release_time"] = release_time + " " + r["creatime"][-9:-1]
+                                result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                                                                    '%Y-%m-%d %H:%M:%S')
+                            else:
+                                # r["creatime"] 可能是时分秒
+                                result_dict["release_time"] = release_time + " " + r["creatime"].strip()
+                                try:
+                                    result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                                                                        '%Y-%m-%d %H:%M:%S')
+                                except:
+                                    # r["creatime"] 不是时分秒
+                                    try:
+                                        result_dict["release_time"] = release_time + " 00:00:00"
+                                        result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                                                                            '%Y-%m-%d %H:%M:%S')
+                                    except:
+                                        pass
+                    except:
+                        pass
+                if monitor_info_instance.name == 'PH值':
+                    result_dict["threshold"] = r["standardvalue"].strip()
+                else:
+                    result_dict["max_cal_value"] = max_value
+                    result_dict["min_cal_value"] = min_value
+                try:
+                    result_dict["zs_value"] = r["monitorValue"].strip()
+                except:
+                    pass
+                result_dict["unit"] = monitor_info_instance.max_unit
+                result_dict["monitor_way"] = way
+                try:
+                    result_dict["monitor_value"] = r["monitorConvertValue"].strip()
+                except:
+                    pass
+                try:
+                    if result_dict["monitor_value"] != '':
+                        compareValue = float(result_dict["monitor_value"])
+                    else:
+                        compareValue = float(result_dict["zs_value"])
+                    if float(min_value) < compareValue < float(max_value):
+                        result_dict["exceed_flag"] = "达标"
+                        result_dict["exceed_type"] = 0
+                    elif float(min_value) > compareValue:
+                        result_dict["exceed_flag"] = "未达标"
+                        result_dict["exceed_type"] = -1
+                    elif compareValue > float(max_value):
+                        result_dict["exceed_flag"] = "未达标"
+                        result_dict["exceed_type"] = 1
+                except:
+                    pass
+                max_value = ''
+                min_value = ''
+                if "pubtime" in result_dict.keys():
+                    queryList.append(result_dict)
+            savePagedata(province, company, syear, queryList, dataType, way, "hour", monitor_point.id,
+                         monitor_info_instance.id)
+            # 因为结果可能不止一页，经过判断是否翻页
+            if page < total_pages:
+                getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monitor_info, way,
+                                         startTime, endTime, page + 1)
+        else:
+            # 在这里如果不进行监测因子的处理，没有监测结果的话就会丢失监测因子的信息
+            monitor_info["frequency"] = "day"
+            monitor_info["way"] = way
+            monitor_info_item = MonitorInfoItem(**monitor_info)
+            monitor_info_item.insert_or_update()
+            print("该时间段没有数据".center(80, '-'))
