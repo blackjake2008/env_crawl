@@ -116,7 +116,6 @@ def syncRedis(result):
             key = 'cl:{0}:{1}'.format(result.province, result.re_company_id)
             API_RD.hset(key, 'lng', result.re_company.lng)
             API_RD.hset(key, 'lat', result.re_company.lat)
-            API_RD.hset(key, 'city', result.re_company.city)
             API_RD.hset(key, 'area', result.re_company.area)
             API_RD.hset(key, 'company_name', result.company)
             API_RD.hset(key, 'company_id', result.re_company_id)
@@ -125,7 +124,7 @@ def syncRedis(result):
             point_type = result.re_monitor.point_type
             if point_type == '' or point_type is None:
                 point_type = pollutionType(result.monitor_info)
-            key = "mp:" + result.re_company_id + ":" + str(result.re_monitor_id)
+            key = "mp:{0}:{1}".format(result.re_company_id, result.re_monitor_id)
             API_RD.hset(key, 'monitor_id', result.re_monitor_id)
             API_RD.hset(key, 'monitor_name', result.monitor)
             API_RD.hset(key, 'monitor_type', point_type)
@@ -133,7 +132,8 @@ def syncRedis(result):
             # monitor_results
             key = "mr:" + str(result.re_monitor_id) + ":" + str(result.re_monitor_info_id)
             redis_pubtime = API_RD.hget(key, 'monitor_time')
-            if redis_pubtime is None or datetime.strptime(redis_pubtime, '%Y-%m-%d %H:%M:%S') < result.pubtime:
+            if redis_pubtime is None or datetime.strptime(str(redis_pubtime, encoding='utf-8'),
+                                                          '%Y-%m-%d %H:%M:%S') < result.pubtime:
                 # 当第一次插入数据或有新数据出来的时候才更新
                 API_RD.hset(key, 'monitor_value', result.monitor_value)
                 API_RD.hset(key, 'monitor_info', result.monitor_info)

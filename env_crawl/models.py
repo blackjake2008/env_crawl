@@ -40,6 +40,8 @@ class EnvCompany(BaseModel):
     legal_person = CharField(max_length=20, null=True)
     industry = CharField(max_length=20, null=True)
     address = CharField(max_length=255, null=True)
+    lng = FloatField()
+    lat = FloatField()
     url = CharField(max_length=255, null=True, default="")
     create_time = DateTimeField(default=datetime.datetime.now)
     update_time = DateTimeField(default=datetime.datetime.now)
