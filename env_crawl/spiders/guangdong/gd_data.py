@@ -100,17 +100,6 @@ class GdDataSpider(scrapy.Spider):
                                                  start_day, end_day)
                     begin_time += timedelta(days=HISTORY_BEFORE)
 
-    def parse_manual(self, response):
-        print(response.text)
-        pass
-
-    def parse_auto(self, response):
-        print(response.text)
-        pass
-
-    def parse_detail(self, response):
-        pass
-
 
 def getResultsOneCompanyManual(inputYear, company, dataType, monitor_point, monitor_info, way, startTime,
                                endTime, page=1):

@@ -53,6 +53,7 @@ class CompanyItem(scrapy.Item):
         except:
             item = None
             print(traceback.format_exc())
+            pg_db.rollback()
         return item
 
     # def get_insert_sql(self):
@@ -132,6 +133,7 @@ class MonitorPointItem(scrapy.Item):
         except:
             item = None
             print(traceback.format_exc())
+            pg_db.rollback()
         return item
 
 
@@ -171,6 +173,7 @@ class MonitorInfoItem(scrapy.Item):
         except:
             item = None
             print(traceback.format_exc())
+            pg_db.rollback()
         return item
 
 
@@ -203,7 +206,20 @@ class ResultItem(scrapy.Item):
     pub_time = scrapy.Field()
 
     def insert_or_update(self):
-        pass
+        try:
+            item = Results.get(Results.re_monitor_info == self['re_monitor_info'],
+                               Results.release_time == self['release_time'])
+            for k in self.keys():
+                item.__setattr__(k, self[k])
+            item.update_time = datetime.now()
+            item.save()
+        except DoesNotExist:
+            item = Results.create(**self)
+        except:
+            item = None
+            print(traceback.format_exc())
+            pg_db.rollback()
+        return item
 
 
 def clean_frequency(data):

@@ -27,7 +27,7 @@ class GdInitSpider(scrapy.Spider):
         url = 'https://app.gdep.gov.cn/epinfo/region/0/%s'
         formdata = {'ename': '', 'year': str(syear)}
         print("开始初始化广东", syear, "年公司信息")
-        for i in range(1, 2):  # TODO page_num+1
+        for i in range(1, page_num + 1):  # TODO page_num+1
             yield scrapy.FormRequest(
                 url=url % i,
                 formdata=formdata,
