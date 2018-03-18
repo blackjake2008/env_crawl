@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import scrapy
-import os
-import re
 import requests
 from env_crawl.items import *
 from env_crawl.settings import *
@@ -149,8 +146,8 @@ def getResultsOneCompanyManual(inputYear, company, dataType, monitor_point, moni
                     print(e)
                     print(traceback.format_exc())
                 try:
-                    result_dict["pubtime"] = datetime.strptime(result_dict["release_time"] + " 00:00:00",
-                                                               '%Y-%m-%d %H:%M:%S')
+                    result_dict["pub_time"] = datetime.strptime(result_dict["release_time"] + " 00:00:00",
+                                                                SQL_DATETIME_FORMAT)
                 except ValueError:
                     print("错误的时间：", release_time)
                     continue
@@ -223,7 +220,7 @@ def getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monito
                     print(e)
                     print(traceback.format_exc())
                 try:
-                    result_dict["pubtime"] = datetime.strptime(result_dict["release_time"], '%Y-%m-%d %H:%M:%S')
+                    result_dict["pub_time"] = datetime.strptime(result_dict["release_time"], '%Y-%m-%d %H:%M:%S')
                 except:
                     try:
                         # 首先确定数据是否为空
@@ -231,23 +228,24 @@ def getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monito
                             # 可能是7-17（01:00:00）这种形式 括号可能是中文或者英文
                             if "（" in r["creatime"] in r["creatime"]:
                                 result_dict["release_time"] = release_time + " " + r["creatime"][-9:-1]
-                                result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                result_dict["pub_time"] = datetime.datetime.strptime(result_dict["release_time"],
                                                                                     '%Y-%m-%d %H:%M:%S')
                             elif "(" in r["creatime"] in r["creatime"]:
                                 result_dict["release_time"] = release_time + " " + r["creatime"][-9:-1]
-                                result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                result_dict["pub_time"] = datetime.datetime.strptime(result_dict["release_time"],
                                                                                     '%Y-%m-%d %H:%M:%S')
                             else:
                                 # r["creatime"] 可能是时分秒
                                 result_dict["release_time"] = release_time + " " + r["creatime"].strip()
                                 try:
-                                    result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                    result_dict["pub_time"] = datetime.datetime.strptime(result_dict["release_time"],
                                                                                         '%Y-%m-%d %H:%M:%S')
                                 except:
                                     # r["creatime"] 不是时分秒
                                     try:
                                         result_dict["release_time"] = release_time + " 00:00:00"
-                                        result_dict["pubtime"] = datetime.datetime.strptime(result_dict["release_time"],
+                                        result_dict["pub_time"] = datetime.datetime.strptime(
+                                            result_dict["release_time"],
                                                                                             '%Y-%m-%d %H:%M:%S')
                                     except:
                                         pass
@@ -286,7 +284,7 @@ def getResultsOneCompanyAuto(inputYear, company, dataType, monitor_point, monito
                     pass
                 max_value = ''
                 min_value = ''
-                if "pubtime" in result_dict.keys():
+                if "pub_time" in result_dict.keys():
                     queryList.append(result_dict)
             savePagedata(province, company, syear, queryList, dataType, way, "hour", monitor_point.id,
                          monitor_info_instance.id)

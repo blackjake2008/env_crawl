@@ -7,6 +7,7 @@ import traceback
 from env_crawl.settings import REDIS_URL, API_RD_URL
 from datetime import datetime, date
 from env_crawl.models import Results
+from env_crawl.items import ResultItem
 
 pool = redis.ConnectionPool.from_url(REDIS_URL)
 RD = redis.Redis(connection_pool=pool)
@@ -53,7 +54,7 @@ def getEndTime(inputYear):
 
 def savePagedata(province, company, inputYear, queryList, dataType, way, frequency, point_name, factor_name):
     if len(queryList) > 0:
-        sortedQueryList = sorted(queryList, key=lambda k: k['pubtime'])
+        sortedQueryList = sorted(queryList, key=lambda k: k['pub_time'])
         insertFlag = bulkCreateResults(inputYear, sortedQueryList)
         if insertFlag and len(sortedQueryList) > 0:
             print("保存数据成功".center(80, "~"))
@@ -84,27 +85,18 @@ def bulkCreateResults(inputYear, record_list):
         for r in record_list:
             r["syear"] = inputYear
             for k in r.keys():
-                if r[k] is None and k != "pubtime":
+                if r[k] is None and k != "pub_time":
                     r[k] = ''
                 elif isinstance(r[k], str):
                     r[k] = r[k].strip()
-            result_obj = Results(**r)
+            result_obj = ResultItem(**r)
             result_list.append(result_obj)
 
     ret = True
     for result in result_list:
-        try:
-            result.save()
-            syncRedis(result)
-        except Exception as ex:
-            print(traceback.format_exc())
-            ret = False
-            print("create error:")
-            print(result.release_time)
-            print(result.monitor)
-            print(result.monitor_info)
-            print("数据插入数据库出错")
-            print(ex)
+        r = result.insert_or_update()
+        if r is not None:
+            syncRedis(r)
     return ret
 
 
@@ -133,11 +125,11 @@ def syncRedis(result):
             key = "mr:" + str(result.re_monitor_id) + ":" + str(result.re_monitor_info_id)
             redis_pubtime = API_RD.hget(key, 'monitor_time')
             if redis_pubtime is None or datetime.strptime(str(redis_pubtime, encoding='utf-8'),
-                                                          '%Y-%m-%d %H:%M:%S') < result.pubtime:
+                                                          '%Y-%m-%d %H:%M:%S') < result.pub_time:
                 # 当第一次插入数据或有新数据出来的时候才更新
                 API_RD.hset(key, 'monitor_value', result.monitor_value)
                 API_RD.hset(key, 'monitor_info', result.monitor_info)
-                API_RD.hset(key, 'monitor_time', result.pubtime)
+                API_RD.hset(key, 'monitor_time', result.pub_time)
                 API_RD.hset(key, 'max_value', (result.threshold or result.re_monitor_info.max_value))
                 if not (result.zs_value == '' or result.zs_value == '-' or result.zs_value is None):
                     API_RD.hset(key, 'zs_value', result.zs_value)
