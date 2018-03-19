@@ -107,3 +107,5 @@ HISTORY_BEFORE = 5
 
 REDIS_URL = "redis://localhost:6379/?db=3"
 API_RD_URL = "redis://localhost:6379/?db=0"
+
+COMMANDS_MODULE = 'env_crawl.commands'

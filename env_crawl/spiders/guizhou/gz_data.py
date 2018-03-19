@@ -9,7 +9,6 @@ from datetime import timedelta
 syear = SYEAR
 province = '贵州'
 
-
 class GzDataSpider(scrapy.Spider):
     name = 'guizhou.data'
     allowed_domains = ['www.gzqyjpjc.com']
